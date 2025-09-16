@@ -1,23 +1,10 @@
-# Icon Assets Placeholder
+# Icon Assets
 
-Binary icon assets are intentionally excluded from version control. Please add the following PNG files before distributing the PWA:
+This folder contains the full icon set generated with PWABuilder. The assets are grouped by platform:
 
-- `icon-16x16.png`
-- `icon-32x32.png`
-- `icon-72x72.png`
-- `icon-96x96.png`
-- `icon-128x128.png`
-- `icon-144x144.png`
-- `icon-152x152.png`
-- `icon-192x192.png`
-- `icon-384x384.png`
-- `icon-512x512.png`
-- `action-start.png`
-- `action-snooze.png`
-- `action-later.png`
-- `shortcut-training.png`
-- `shortcut-progress.png`
-- `shortcut-timer.png`
-- `splash-640x1136.png`
+- `ios/` – square icons for favicons, apple-touch icons, and badges
+- `android/` – adaptive launcher icons that also serve as PWA shortcuts and notification artwork
+- `android/windows11/` – Windows tiles, splash screens, and store artwork
 
-Make sure the file names match the references in `manifest.json`, `index.html`, and the service worker so that install prompts, shortcuts, and notifications display the correct artwork.
+`manifest.json`, `index.html`, and `public/sw.js` reference the icons directly from these folders, so no renaming is required.
+Add new icons next to the existing ones if you customise the artwork and keep the same relative paths to stay compatible with the PWA configuration.
