@@ -47,20 +47,29 @@ export function useNotifications() {
       try {
         const registration = await navigator.serviceWorker.ready
         clearScheduledReminder()
+        const timeoutDelay = Math.max(1000, Math.min(delay, 24 * 60 * 60 * 1000))
         reminderTimeoutRef.current = window.setTimeout(() => {
           registration.showNotification('Calisthenix Training', {
             body: message || 'Zeit für dein Workout!',
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/icon-72x72.png',
+            icon: '/icons/android/android-launchericon-192-192.png',
+            badge: '/icons/ios/72.png',
             vibrate: [200, 100, 200, 100, 200],
             tag: 'workout-reminder',
             requireInteraction: true,
             actions: [
-              { action: 'start', title: 'Jetzt starten', icon: '/icons/action-start.png' },
-              { action: 'snooze', title: '10 Min später', icon: '/icons/action-snooze.png' },
+              {
+                action: 'start',
+                title: 'Jetzt starten',
+                icon: '/icons/android/android-launchericon-96-96.png',
+              },
+              {
+                action: 'snooze',
+                title: '10 Min später',
+                icon: '/icons/android/android-launchericon-96-96.png',
+              },
             ],
           })
-        }, delay)
+        }, timeoutDelay)
         return true
       } catch (error) {
         console.error('[Notifications] Zeitplanung fehlgeschlagen:', error)

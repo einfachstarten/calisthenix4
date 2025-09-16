@@ -16,13 +16,13 @@ function PWAInstallPrompt() {
   }
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50 mx-auto w-[min(90%,32rem)] p-4 animate-slideDown">
+    <div className="fixed inset-x-0 bottom-24 z-50 mx-auto w-[min(90%,32rem)] p-4 animate-slideUp">
       <div className="relative rounded-3xl border border-brand-400/30 bg-gradient-card p-6 shadow-card-hover backdrop-blur-xl">
         <button
           type="button"
           onClick={() => setDismissed(true)}
           className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-          aria-label="Installationshinweis schließen"
+          aria-label="Install prompt schließen"
         >
           <X className="h-4 w-4" />
         </button>
@@ -33,12 +33,12 @@ function PWAInstallPrompt() {
           </div>
 
           <div className="flex-1">
-            <h3 className="mb-2 text-lg font-bold text-white">Calisthenix installieren</h3>
+            <h3 className="mb-2 text-lg font-bold text-white">App installieren</h3>
             <p className="mb-4 text-sm text-slate-300">
-              Installiere die App für bessere Performance, Offline-Zugang und Push-Benachrichtigungen.
+              Installiere Calisthenix für bessere Performance, Offline-Zugang und Push-Benachrichtigungen.
             </p>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleInstall}

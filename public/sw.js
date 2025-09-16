@@ -4,27 +4,21 @@ const DYNAMIC_CACHE = `calisthenix-dynamic-${APP_VERSION}`
 
 const APP_SHELL = ['/', '/index.html', '/manifest.json']
 
-// Icon artwork is not committed to the repository. Add the PNG files listed in
-// `public/icons/README.md` to enable full pre-caching of icons, shortcuts, and
-// notification assets once they are available.
+// Pre-cache a representative subset of platform-specific icons that ship with
+// the application so they stay available offline and work for install prompts,
+// app shortcuts, and notifications.
 const OPTIONAL_ASSETS = [
-  '/icons/icon-16x16.png',
-  '/icons/icon-32x32.png',
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
-  '/icons/icon-512x512.png',
-  '/icons/shortcut-training.png',
-  '/icons/shortcut-progress.png',
-  '/icons/shortcut-timer.png',
-  '/icons/action-start.png',
-  '/icons/action-later.png',
-  '/icons/action-snooze.png',
-  '/icons/splash-640x1136.png',
+  '/icons/ios/16.png',
+  '/icons/ios/32.png',
+  '/icons/ios/72.png',
+  '/icons/android/android-launchericon-96-96.png',
+  '/icons/ios/128.png',
+  '/icons/android/android-launchericon-144-144.png',
+  '/icons/ios/152.png',
+  '/icons/android/android-launchericon-192-192.png',
+  '/icons/android/windows11/Square150x150Logo.scale-200.png',
+  '/icons/android/android-launchericon-512-512.png',
+  '/icons/ios/512.png',
 ]
 
 self.addEventListener('install', (event) => {
@@ -167,16 +161,24 @@ self.addEventListener('push', (event) => {
   const body = event.data ? event.data.text() : 'Zeit für dein Workout!'
   const options = {
     body,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: '/icons/android/android-launchericon-192-192.png',
+    badge: '/icons/ios/72.png',
     vibrate: [200, 100, 200],
     data: {
       url: '/',
       timestamp: Date.now(),
     },
     actions: [
-      { action: 'start-workout', title: 'Workout starten', icon: '/icons/action-start.png' },
-      { action: 'remind-later', title: 'Später erinnern', icon: '/icons/action-later.png' },
+      {
+        action: 'start-workout',
+        title: 'Workout starten',
+        icon: '/icons/android/android-launchericon-96-96.png',
+      },
+      {
+        action: 'remind-later',
+        title: 'Später erinnern',
+        icon: '/icons/android/android-launchericon-96-96.png',
+      },
     ],
     requireInteraction: true,
     tag: 'workout-reminder',
@@ -219,8 +221,8 @@ const scheduleNotification = async (delay, message) => {
       setTimeout(() => {
         self.registration.showNotification('Calisthenix Training', {
           body: message || 'Zeit für dein Workout!',
-          icon: '/icons/icon-192x192.png',
-          badge: '/icons/icon-72x72.png',
+          icon: '/icons/android/android-launchericon-192-192.png',
+          badge: '/icons/ios/72.png',
           vibrate: [200, 100, 200],
           tag: 'workout-reminder-fallback',
         })

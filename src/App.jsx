@@ -1,17 +1,19 @@
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import OfflineBanner from './components/OfflineBanner'
 import OverviewView from './components/OverviewView'
 import PWAInstallPrompt from './components/PWAInstallPrompt'
 import Timer from './components/Timer'
 import WorkoutView from './components/WorkoutView'
-import WorkoutWakeLock from './components/WorkoutWakeLock'
 import { LoadingScreen } from './components/LoadingStates'
 import workoutProgram from './data/workoutProgram'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useNotifications } from './hooks/useNotifications'
+import { useWakeLock } from './hooks/useWakeLock'
+import { useRouter } from './hooks/useRouter'
 import { playBeep } from './utils/audio'
 import { floatVariants, pageVariants } from './utils/animations'
+import { getViewFromPath } from './utils/routeHelpers'
 
 const phases = ['warmup', 'main', 'cooldown']
 
@@ -28,6 +30,8 @@ const deserializeSet = (value) => {
 
 function App() {
   const weekKeys = useMemo(() => Object.keys(workoutProgram), [])
+  const { currentPath } = useRouter()
+  const previousPathRef = useRef(null)
 
   const [currentView, setCurrentView] = useState('overview')
   const [selectedDay, setSelectedDay] = useState(null)
@@ -69,6 +73,7 @@ function App() {
     requestPermission,
     scheduleWorkoutReminder,
   } = useNotifications()
+  const { isActive: wakeLockActive, requestWakeLock, releaseWakeLock } = useWakeLock()
 
   useEffect(() => {
     if (!workoutProgram[currentWeek]) {
@@ -266,6 +271,41 @@ function App() {
     setTimerLabel('')
   }, [])
 
+  useEffect(() => {
+    if (typeof currentPath !== 'string') return
+
+    const pathChanged = previousPathRef.current !== currentPath
+    previousPathRef.current = currentPath
+
+    const routeConfig = getViewFromPath(currentPath, {
+      program: workoutProgram,
+      currentWeek,
+      weekKeys,
+    })
+
+    if (routeConfig.selectedWeek && routeConfig.selectedWeek !== currentWeek) {
+      setCurrentWeek(routeConfig.selectedWeek)
+    }
+
+    if (routeConfig.view === 'workout' && routeConfig.selectedDay) {
+      if (routeConfig.selectedDay !== selectedDay) {
+        setSelectedDay(routeConfig.selectedDay)
+      }
+      if (currentView !== 'workout') {
+        setCurrentView('workout')
+      }
+    } else {
+      const nextView = routeConfig.view || 'overview'
+      if (currentView !== nextView) {
+        setCurrentView(nextView)
+      }
+    }
+
+    if (routeConfig.startTimer && pathChanged) {
+      startTimer(60, 'Schneller Timer')
+    }
+  }, [currentPath, currentView, currentWeek, selectedDay, setCurrentWeek, startTimer, weekKeys])
+
   const weekSummaries = useMemo(
     () =>
       weekKeys.map((weekKey, index) => {
@@ -339,6 +379,19 @@ function App() {
   const timerVisible = isRunning || timeLeft > 0
   const isWorkoutActive = currentView === 'workout' && selectedDay && !currentDayData?.isRestDay
 
+  useEffect(() => {
+    if (!isWorkoutActive) {
+      releaseWakeLock()
+      return
+    }
+
+    requestWakeLock()
+
+    return () => {
+      releaseWakeLock()
+    }
+  }, [isWorkoutActive, releaseWakeLock, requestWakeLock])
+
   const handleSelectWeek = useCallback(
     (weekKey) => {
       setCurrentWeek(weekKey)
@@ -370,7 +423,13 @@ function App() {
     <main className="relative mx-auto min-h-screen max-w-4xl pb-32">
       <PWAInstallPrompt />
       <OfflineBanner />
-      <WorkoutWakeLock isWorkoutActive={isWorkoutActive} />
+      {wakeLockActive && isWorkoutActive ? (
+        <div className="fixed bottom-20 right-4 z-30">
+          <div className="rounded-full border border-green-400/30 bg-green-500/20 px-3 py-1 text-xs text-green-200 backdrop-blur-sm">
+            🔒 Bildschirm aktiv
+          </div>
+        </div>
+      ) : null}
 
       <motion.div
         className="pointer-events-none fixed inset-0 -z-20"
@@ -407,15 +466,15 @@ function App() {
 
       {notificationsSupported && permission === 'default' ? (
         <motion.div
-          className="fixed inset-x-0 bottom-24 z-30 mx-auto w-[min(90%,32rem)] p-4"
-          initial={{ opacity: 0, y: 20 }}
+          className="fixed inset-x-0 top-4 z-30 mx-auto w-[min(90%,32rem)] p-4"
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="rounded-2xl border border-brand-400/30 bg-gradient-card p-4 shadow-card backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h4 className="font-semibold text-white">Workout-Erinnerungen</h4>
-                <p className="text-sm text-slate-300">Lass dich an dein Training erinnern!</p>
+                <p className="text-sm text-slate-300">Bleib motiviert mit täglichen Benachrichtigungen.</p>
               </div>
               <motion.button
                 type="button"
