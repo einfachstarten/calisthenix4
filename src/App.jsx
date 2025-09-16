@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import OfflineBanner from './components/OfflineBanner'
 import OverviewView from './components/OverviewView'
@@ -5,10 +6,12 @@ import PWAInstallPrompt from './components/PWAInstallPrompt'
 import Timer from './components/Timer'
 import WorkoutView from './components/WorkoutView'
 import WorkoutWakeLock from './components/WorkoutWakeLock'
+import { LoadingScreen } from './components/LoadingStates'
 import workoutProgram from './data/workoutProgram'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useNotifications } from './hooks/useNotifications'
 import { playBeep } from './utils/audio'
+import { floatVariants, pageVariants } from './utils/animations'
 
 const phases = ['warmup', 'main', 'cooldown']
 
@@ -28,6 +31,7 @@ function App() {
 
   const [currentView, setCurrentView] = useState('overview')
   const [selectedDay, setSelectedDay] = useState(null)
+  const [isAppReady, setIsAppReady] = useState(false)
 
   const [currentWeek, setCurrentWeek] = useLocalStorage('current-week', weekKeys[0] ?? 'week1')
   const [completedWorkouts, setCompletedWorkouts] = useLocalStorage(
@@ -42,9 +46,22 @@ function App() {
   )
 
   const [timeLeft, setTimeLeft] = useState(0)
-  const [timerDuration, setTimerDuration] = useState(0)
+  const [timerTotal, setTimerTotal] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [timerLabel, setTimerLabel] = useState('')
+
+  const reduceMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll()
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, reduceMotion ? 0 : -120])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      setIsAppReady(true)
+      return undefined
+    }
+    const timeout = window.setTimeout(() => setIsAppReady(true), 450)
+    return () => window.clearTimeout(timeout)
+  }, [])
 
   const {
     isSupported: notificationsSupported,
@@ -216,17 +233,17 @@ function App() {
   }, [notificationsSupported, permission, scheduleWorkoutReminder])
 
   useEffect(() => {
-    if (!isRunning && timeLeft === 0 && timerDuration !== 0) {
-      setTimerDuration(0)
+    if (!isRunning && timeLeft === 0 && timerTotal !== 0) {
+      setTimerTotal(0)
       setTimerLabel('')
     }
-  }, [isRunning, timeLeft, timerDuration])
+  }, [isRunning, timeLeft, timerTotal])
 
   const startTimer = useCallback((duration, label) => {
     if (typeof duration !== 'number' || Number.isNaN(duration) || duration <= 0) return
     setIsRunning(false)
     setTimeLeft(duration)
-    setTimerDuration(duration)
+    setTimerTotal(duration)
     setTimerLabel(label)
     setIsRunning(true)
   }, [])
@@ -245,7 +262,7 @@ function App() {
   const resetTimer = useCallback(() => {
     setIsRunning(false)
     setTimeLeft(0)
-    setTimerDuration(0)
+    setTimerTotal(0)
     setTimerLabel('')
   }, [])
 
@@ -355,61 +372,104 @@ function App() {
       <OfflineBanner />
       <WorkoutWakeLock isWorkoutActive={isWorkoutActive} />
 
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-slate-950" aria-hidden />
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-main opacity-60" aria-hidden />
+      <motion.div
+        className="pointer-events-none fixed inset-0 -z-20"
+        aria-hidden
+        animate={{
+          background:
+            currentView === 'workout'
+              ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+              : 'linear-gradient(135deg, #0f172a 0%, #0c4a6e 100%)',
+        }}
+        transition={{ duration: reduceMotion ? 0 : 0.8, ease: [0.4, 0, 0.2, 1] }}
+      />
+      <motion.div
+        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-main opacity-60"
+        aria-hidden
+        style={{ y: parallaxY }}
+      />
+      <motion.div
+        className="pointer-events-none fixed -right-24 top-20 -z-10 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl"
+        aria-hidden
+        variants={floatVariants}
+        animate={reduceMotion ? undefined : 'animate'}
+        style={{ y: reduceMotion ? 0 : parallaxY }}
+      />
+      <motion.div
+        className="pointer-events-none fixed -left-32 bottom-10 -z-10 h-64 w-64 rounded-full bg-accent-500/15 blur-3xl"
+        aria-hidden
+        variants={floatVariants}
+        animate={reduceMotion ? undefined : 'animate'}
+        style={{ y: reduceMotion ? 0 : parallaxY }}
+      />
 
-      {notificationsSupported && permission === 'default' && (
-        <div className="fixed inset-x-0 bottom-24 z-30 mx-auto w-[min(90%,32rem)] p-4">
+      <AnimatePresence>{!isAppReady ? <LoadingScreen /> : null}</AnimatePresence>
+
+      {notificationsSupported && permission === 'default' ? (
+        <motion.div
+          className="fixed inset-x-0 bottom-24 z-30 mx-auto w-[min(90%,32rem)] p-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <div className="rounded-2xl border border-brand-400/30 bg-gradient-card p-4 shadow-card backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h4 className="font-semibold text-white">Workout-Erinnerungen</h4>
                 <p className="text-sm text-slate-300">Lass dich an dein Training erinnern!</p>
               </div>
-              <button
+              <motion.button
                 type="button"
                 onClick={requestPermission}
-                className="rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
+                whileHover={{ scale: reduceMotion ? 1 : 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                className="rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white"
               >
                 Aktivieren
-              </button>
+              </motion.button>
             </div>
           </div>
-        </div>
-      )}
+        </motion.div>
+      ) : null}
 
-      {currentView === 'workout' && selectedDay && currentDayData ? (
-        <WorkoutView
-          weekKey={currentWeek}
-          dayKey={selectedDay}
-          dayData={currentDayData}
-          onBack={handleBackToOverview}
-          onToggleExercise={(phase, index) => toggleExerciseComplete(currentWeek, selectedDay, phase, index)}
-          onToggleWorkoutComplete={() => toggleWorkoutComplete(currentWeek, selectedDay)}
-          isExerciseCompleted={isExerciseCompleted}
-          sessionProgress={sessionProgress}
-          weekDayStatus={weekDayStatus}
-          totalWeekStatus={totalWeekStatus}
-          onStartTimer={startTimer}
-          isWorkoutCompleted={isWorkoutCompleted}
-        />
-      ) : (
-        <OverviewView
-          currentWeek={currentWeek}
-          weekSummaries={weekSummaries}
-          weekData={currentWeekData}
-          dayKeys={currentDayKeys}
-          onSelectWeek={handleSelectWeek}
-          onSelectDay={handleSelectDay}
-          completedWorkouts={completedWorkouts}
-        />
-      )}
+      <AnimatePresence mode="wait">
+        {currentView === 'workout' && selectedDay && currentDayData ? (
+          <motion.div key="workout-view" variants={pageVariants} initial="initial" animate="in" exit="out">
+            <WorkoutView
+              weekKey={currentWeek}
+              dayKey={selectedDay}
+              dayData={currentDayData}
+              onBack={handleBackToOverview}
+              onToggleExercise={(phase, index) => toggleExerciseComplete(currentWeek, selectedDay, phase, index)}
+              onToggleWorkoutComplete={() => toggleWorkoutComplete(currentWeek, selectedDay)}
+              isExerciseCompleted={isExerciseCompleted}
+              sessionProgress={sessionProgress}
+              weekDayStatus={weekDayStatus}
+              totalWeekStatus={totalWeekStatus}
+              onStartTimer={startTimer}
+              isWorkoutCompleted={isWorkoutCompleted}
+            />
+          </motion.div>
+        ) : (
+          <motion.div key="overview" variants={pageVariants} initial="initial" animate="in" exit="out">
+            <OverviewView
+              currentWeek={currentWeek}
+              weekSummaries={weekSummaries}
+              weekData={currentWeekData}
+              dayKeys={currentDayKeys}
+              onSelectWeek={handleSelectWeek}
+              onSelectDay={handleSelectDay}
+              completedWorkouts={completedWorkouts}
+              isLoading={!isAppReady}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Timer
+        isVisible={timerVisible}
         timeLeft={timeLeft}
-        totalDuration={timerDuration}
+        totalTime={timerTotal}
         isRunning={isRunning}
-        visible={timerVisible}
         onPause={pauseTimer}
         onResume={resumeTimer}
         onReset={resetTimer}

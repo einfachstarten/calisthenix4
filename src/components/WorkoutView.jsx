@@ -1,6 +1,8 @@
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import ExerciseCard from './ExerciseCard'
 import ProgressBar from './ProgressBar'
+import { cardVariants, containerVariants } from '../utils/animations'
 
 const phaseOrder = [
   { key: 'warmup', label: 'Aufwärmen' },
@@ -41,34 +43,49 @@ function WorkoutView({
   const exercisesAvailable = phaseOrder.some(
     (phase) => Array.isArray(dayData?.[phase.key]) && dayData[phase.key].length > 0,
   )
+  const reduceMotion = useReducedMotion()
 
   return (
-    <section className="space-y-6 p-4 pb-32 sm:p-8">
-      <button
+    <motion.section
+      className="space-y-6 p-4 pb-32 sm:p-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.button
         type="button"
         onClick={onBack}
         className="inline-flex items-center gap-2 text-sm font-medium text-brand-200 transition hover:text-brand-50"
+        whileHover={{ x: reduceMotion ? 0 : -2 }}
+        whileTap={{ scale: 0.97 }}
       >
         <ArrowLeft className="h-4 w-4" /> Zur Wochenübersicht
-      </button>
+      </motion.button>
 
-      <header className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.4em] text-brand-300">
+      <motion.header className="space-y-2" variants={cardVariants}>
+        <motion.p className="text-xs uppercase tracking-[0.4em] text-brand-300" variants={cardVariants}>
           Woche {Number.parseInt(weekKey.replace('week', ''), 10)} · Tag {Number.parseInt(dayKey.replace('day', ''), 10)}
-        </p>
-        <h1 className="text-3xl font-semibold text-white">{dayData?.title}</h1>
-        {dayData?.subtitle ? <p className="text-slate-300">{dayData.subtitle}</p> : null}
-      </header>
+        </motion.p>
+        <motion.h1 className="text-3xl font-semibold text-white" variants={cardVariants}>
+          {dayData?.title}
+        </motion.h1>
+        {dayData?.subtitle ? (
+          <motion.p className="text-slate-300" variants={cardVariants}>
+            {dayData.subtitle}
+          </motion.p>
+        ) : null}
+      </motion.header>
 
-      <ProgressBar
-        session={sessionProgress}
-        weekDays={weekDayStatus}
-        weeks={totalWeekStatus}
-      />
+      <motion.div variants={cardVariants}>
+        <ProgressBar session={sessionProgress} weekDays={weekDayStatus} weeks={totalWeekStatus} />
+      </motion.div>
 
-      <button
+      <motion.button
         type="button"
         onClick={onToggleWorkoutComplete}
+        variants={cardVariants}
+        whileHover={{ scale: reduceMotion ? 1 : 1.02 }}
+        whileTap={{ scale: 0.97 }}
         className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition ${
           isWorkoutCompleted
             ? 'border-brand-400 bg-brand-500/30 text-white'
@@ -77,22 +94,27 @@ function WorkoutView({
       >
         <Sparkles className="h-4 w-4" />
         {isWorkoutCompleted ? 'Workout zurücksetzen' : 'Workout als erledigt markieren'}
-      </button>
+      </motion.button>
 
       {!exercisesAvailable ? (
-        <p className="rounded-xl border border-dashed border-white/10 bg-slate-900/40 p-4 text-slate-200">
+        <motion.p
+          className="rounded-xl border border-dashed border-white/10 bg-slate-900/40 p-4 text-slate-200"
+          variants={cardVariants}
+        >
           Für diesen Tag sind noch keine Übungen hinterlegt.
-        </p>
+        </motion.p>
       ) : (
-        <div className="space-y-6">
+        <motion.div className="space-y-6" variants={containerVariants} initial="hidden" animate="visible">
           {phaseOrder.map(({ key, label }) => {
             const exercises = Array.isArray(dayData?.[key]) ? dayData[key] : []
             if (exercises.length === 0) return null
 
             return (
-              <section key={key} className="space-y-3">
-                <h2 className="text-lg font-semibold text-white">{label}</h2>
-                <div className="space-y-3">
+              <motion.section key={key} className="space-y-3" variants={cardVariants}>
+                <motion.h2 className="text-lg font-semibold text-white" variants={cardVariants}>
+                  {label}
+                </motion.h2>
+                <motion.div className="space-y-3" variants={containerVariants} initial="hidden" animate="visible">
                   {exercises.map((exercise, index) => (
                     <ExerciseCard
                       key={`${key}-${index}`}
@@ -104,13 +126,13 @@ function WorkoutView({
                       onStartTimer={onStartTimer}
                     />
                   ))}
-                </div>
-              </section>
+                </motion.div>
+              </motion.section>
             )
           })}
-        </div>
+        </motion.div>
       )}
-    </section>
+    </motion.section>
   )
 }
 
