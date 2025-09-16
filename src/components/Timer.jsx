@@ -36,38 +36,38 @@ function Timer({
     : 0
 
   return (
-    <div className="fixed inset-x-0 bottom-6 z-30 mx-auto w-[min(90%,28rem)] rounded-2xl border border-white/10 bg-slate-900/90 p-4 shadow-soft backdrop-blur-lg">
-      <div className="flex items-center justify-between gap-2">
+    <div className="fixed inset-x-0 bottom-6 z-30 mx-auto w-[min(90%,32rem)] rounded-3xl border border-brand-400/30 bg-gradient-card p-6 shadow-card-hover backdrop-blur-xl animate-slideUp">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           {label ? (
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-300">{label}</p>
           ) : null}
-          <p className="font-mono text-5xl font-semibold text-white">
+          <p className="font-mono text-6xl font-bold text-white drop-shadow-lg">
             {minutes}:{seconds}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={isRunning ? onPause : onResume}
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-inner shadow-brand-900 transition-transform hover:scale-105 active:scale-95"
+            className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-brand text-white shadow-glow transition-all duration-300 hover:scale-110 hover:shadow-glow-accent active:scale-95"
             aria-label={isRunning ? 'Timer pausieren' : 'Timer starten'}
           >
-            {isRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            {isRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
           </button>
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/90 transition hover:bg-white/10"
+            className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/20 bg-slate-800/60 text-white/90 backdrop-blur-sm transition-all duration-300 hover:border-brand-400/50 hover:bg-slate-700/60"
             aria-label="Timer zurücksetzen"
           >
-            <RotateCcw className="h-5 w-5" />
+            <RotateCcw className="h-6 w-6" />
           </button>
         </div>
       </div>
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-800/60">
         <div
-          className="h-full rounded-full bg-brand-400 transition-all"
+          className="h-full rounded-full bg-gradient-brand shadow-glow transition-all duration-300"
           style={{ width: `${progress * 100}%` }}
           aria-hidden
         />

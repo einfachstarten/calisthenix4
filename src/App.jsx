@@ -301,10 +301,8 @@ function App() {
 
   return (
     <main className="relative mx-auto min-h-screen max-w-4xl pb-32">
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
-        aria-hidden
-      />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-slate-950" aria-hidden />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-main opacity-60" aria-hidden />
 
       {currentView === 'workout' && selectedDay && currentDayData ? (
         <WorkoutView

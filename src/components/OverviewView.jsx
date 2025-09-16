@@ -36,21 +36,24 @@ function OverviewView({
         ) : null}
       </header>
 
-      <nav className="flex flex-wrap gap-2">
+      <nav className="flex flex-wrap gap-3">
         {weekSummaries.map((week) => (
           <button
             key={week.key}
             type="button"
             onClick={() => onSelectWeek(week.key)}
-            className={`flex-1 min-w-[130px] rounded-full border px-4 py-2 text-sm transition ${
+            className={`group relative flex-1 min-w-[140px] rounded-2xl border backdrop-blur-sm px-6 py-3 text-sm font-semibold transition-all duration-300 ${
               week.key === currentWeek
-                ? 'border-brand-400 bg-brand-500/20 text-brand-50 shadow-soft'
+                ? 'border-brand-400/50 bg-gradient-card text-brand-50 shadow-card-hover animate-pulse-glow'
                 : week.status === 'complete'
-                  ? 'border-brand-400/70 bg-brand-500/10 text-brand-100'
-                  : 'border-white/10 bg-slate-900/60 text-slate-300'
+                  ? 'border-success-400/50 bg-gradient-to-br from-success-500/10 to-success-600/10 text-success-100 hover:shadow-glow'
+                  : 'border-white/10 bg-slate-900/40 text-slate-300 hover:border-brand-400/30 hover:bg-slate-900/60'
             }`}
           >
-            Woche {week.index + 1}
+            <div className="relative z-10">Woche {week.index + 1}</div>
+            {week.key === currentWeek ? (
+              <div className="absolute inset-0 rounded-2xl bg-gradient-brand opacity-10" />
+            ) : null}
           </button>
         ))}
       </nav>
@@ -76,34 +79,44 @@ function OverviewView({
                   <button
                     type="button"
                     onClick={() => onSelectDay(dayKey)}
-                    className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-3 text-left transition ${
+                    className={`group flex w-full items-center gap-4 rounded-3xl border backdrop-blur-sm px-5 py-4 text-left transition-all duration-300 hover:scale-[1.02] ${
                       completed
-                        ? 'border-brand-400 bg-brand-500/15 text-white'
+                        ? 'border-success-400/50 bg-gradient-to-br from-success-500/15 to-success-600/10 text-white shadow-card hover:shadow-glow'
                         : isRestDay
-                          ? 'border-dashed border-brand-300/60 bg-brand-500/10 text-brand-100'
-                          : 'border-white/10 bg-slate-900/60 text-slate-200 hover:border-brand-400/40'
+                          ? 'border-dashed border-brand-300/60 bg-gradient-to-br from-brand-500/10 to-accent-500/10 text-brand-100'
+                          : 'border-white/10 bg-slate-900/40 text-slate-200 hover:border-brand-400/40 hover:bg-gradient-card hover:shadow-card-hover'
                     }`}
                   >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/40 text-sm font-semibold text-brand-200">
+                    <span
+                      className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
+                        completed
+                          ? 'bg-success-500/30 text-success-100 shadow-glow'
+                          : isRestDay
+                            ? 'bg-brand-500/30 text-brand-200'
+                            : 'bg-slate-800/60 text-brand-200 group-hover:bg-brand-500/30'
+                      }`}
+                    >
                       {dayNumber}
                     </span>
                     <div className="flex-1">
-                      <p className="text-xs uppercase tracking-[0.3em] text-brand-300">{day.title}</p>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3em] text-brand-300">
+                        {day.title}
+                      </p>
                       {day.subtitle ? (
-                        <p className="text-sm text-slate-300">{day.subtitle}</p>
+                        <p className="text-sm leading-relaxed text-slate-300">{day.subtitle}</p>
                       ) : null}
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-3 text-sm font-semibold">
                       {completed ? (
-                        <span className="inline-flex items-center gap-1 text-brand-50">
-                          <CheckCircle2 className="h-4 w-4" /> Fertig
+                        <span className="inline-flex items-center gap-2 text-success-200">
+                          <CheckCircle2 className="h-5 w-5" /> Fertig
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-slate-300">
-                          <Circle className="h-4 w-4" /> Offen
+                        <span className="inline-flex items-center gap-2 text-slate-300 group-hover:text-brand-200">
+                          <Circle className="h-5 w-5" /> Offen
                         </span>
                       )}
-                      <ChevronRight className="h-5 w-5 text-brand-200" />
+                      <ChevronRight className="h-5 w-5 text-brand-300 transition-transform group-hover:translate-x-1" />
                     </div>
                   </button>
                 </li>
