@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import OfflineBanner from './components/OfflineBanner'
 import OverviewView from './components/OverviewView'
-import WorkoutView from './components/WorkoutView'
+import PWAInstallPrompt from './components/PWAInstallPrompt'
 import Timer from './components/Timer'
+import WorkoutView from './components/WorkoutView'
+import WorkoutWakeLock from './components/WorkoutWakeLock'
 import workoutProgram from './data/workoutProgram'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { useNotifications } from './hooks/useNotifications'
 import { playBeep } from './utils/audio'
 
 const phases = ['warmup', 'main', 'cooldown']
@@ -42,11 +46,43 @@ function App() {
   const [isRunning, setIsRunning] = useState(false)
   const [timerLabel, setTimerLabel] = useState('')
 
+  const {
+    isSupported: notificationsSupported,
+    permission,
+    requestPermission,
+    scheduleWorkoutReminder,
+  } = useNotifications()
+
   useEffect(() => {
     if (!workoutProgram[currentWeek]) {
       setCurrentWeek(weekKeys[0] ?? 'week1')
     }
   }, [currentWeek, setCurrentWeek, weekKeys])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined
+
+    const registerServiceWorker = () => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.info('[App] Service Worker registriert:', registration.scope)
+        })
+        .catch((error) => {
+          console.error('[App] Service Worker Registrierung fehlgeschlagen:', error)
+        })
+    }
+
+    if (document.readyState === 'complete') {
+      registerServiceWorker()
+    } else {
+      window.addEventListener('load', registerServiceWorker)
+    }
+
+    return () => {
+      window.removeEventListener('load', registerServiceWorker)
+    }
+  }, [])
 
   const getDayKeys = useCallback((weekKey) => {
     const weekData = workoutProgram[weekKey]
@@ -167,6 +203,19 @@ function App() {
   }, [isRunning, timeLeft])
 
   useEffect(() => {
+    if (!notificationsSupported || permission !== 'granted') return undefined
+
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(9, 0, 0, 0)
+
+    scheduleWorkoutReminder(
+      tomorrow.toISOString(),
+      'Bereit für dein Calisthenics Training? 💪',
+    )
+  }, [notificationsSupported, permission, scheduleWorkoutReminder])
+
+  useEffect(() => {
     if (!isRunning && timeLeft === 0 && timerDuration !== 0) {
       setTimerDuration(0)
       setTimerLabel('')
@@ -271,6 +320,7 @@ function App() {
 
   const isWorkoutCompleted = Boolean(selectedDay) && completedWorkouts.has(`${currentWeek}-${selectedDay}`)
   const timerVisible = isRunning || timeLeft > 0
+  const isWorkoutActive = currentView === 'workout' && selectedDay && !currentDayData?.isRestDay
 
   const handleSelectWeek = useCallback(
     (weekKey) => {
@@ -301,8 +351,32 @@ function App() {
 
   return (
     <main className="relative mx-auto min-h-screen max-w-4xl pb-32">
+      <PWAInstallPrompt />
+      <OfflineBanner />
+      <WorkoutWakeLock isWorkoutActive={isWorkoutActive} />
+
       <div className="pointer-events-none fixed inset-0 -z-10 bg-slate-950" aria-hidden />
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-main opacity-60" aria-hidden />
+
+      {notificationsSupported && permission === 'default' && (
+        <div className="fixed inset-x-0 bottom-24 z-30 mx-auto w-[min(90%,32rem)] p-4">
+          <div className="rounded-2xl border border-brand-400/30 bg-gradient-card p-4 shadow-card backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h4 className="font-semibold text-white">Workout-Erinnerungen</h4>
+                <p className="text-sm text-slate-300">Lass dich an dein Training erinnern!</p>
+              </div>
+              <button
+                type="button"
+                onClick={requestPermission}
+                className="rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
+              >
+                Aktivieren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {currentView === 'workout' && selectedDay && currentDayData ? (
         <WorkoutView

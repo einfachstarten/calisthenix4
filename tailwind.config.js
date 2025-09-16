@@ -63,6 +63,7 @@ export default {
       animation: {
         fadeIn: 'fadeIn 0.5s ease-in-out',
         slideUp: 'slideUp 0.3s ease-out',
+        slideDown: 'slideDown 0.35s ease-out',
         'pulse-glow': 'pulse-glow 2s infinite',
       },
       keyframes: {
@@ -72,6 +73,10 @@ export default {
         },
         slideUp: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-12px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         'pulse-glow': {
