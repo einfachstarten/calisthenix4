@@ -32,22 +32,22 @@ function ExerciseCard({ exercise, phase, index, isCompleted, onToggle, onStartTi
 
   return (
     <article
-      className={`rounded-2xl border transition-colors ${
+      className={`group rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] ${
         isCompleted
-          ? 'border-brand-400 bg-brand-500/10 backdrop-blur'
-          : 'border-white/10 bg-slate-900/40'
+          ? 'border-success-400/50 bg-gradient-to-br from-success-500/15 to-success-600/10 shadow-card animate-fadeIn'
+          : 'border-white/10 bg-slate-900/40 hover:border-brand-400/40 hover:bg-gradient-card hover:shadow-card-hover'
       }`}
     >
-      <div className="flex gap-3 p-4">
-        <label className="relative inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center">
+      <div className="flex gap-4 p-5">
+        <label className="relative inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center">
           <input
             type="checkbox"
             checked={isCompleted}
             onChange={onToggle}
-            className="peer h-6 w-6 appearance-none rounded-full border-2 border-white/20 transition-colors checked:border-brand-400 checked:bg-brand-500"
+            className="peer h-7 w-7 appearance-none rounded-full border-2 border-white/30 transition-all duration-300 checked:border-success-400 checked:bg-gradient-success checked:shadow-glow"
             aria-label={`${exercise.name} abhaken`}
           />
-          <span className="pointer-events-none absolute inset-0 hidden items-center justify-center text-xs text-white peer-checked:flex">
+          <span className="pointer-events-none absolute inset-0 hidden items-center justify-center text-sm font-bold text-white peer-checked:flex">
             ✓
           </span>
         </label>
@@ -56,27 +56,31 @@ function ExerciseCard({ exercise, phase, index, isCompleted, onToggle, onStartTi
           <button
             type="button"
             onClick={() => setExpanded((open) => !open)}
-            className="flex w-full items-center justify-between gap-3 text-left"
+            className="flex w-full items-center justify-between gap-4 text-left"
             aria-expanded={expanded}
           >
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">{phaseLabel}</p>
-              <h3 className="text-lg font-semibold text-white">{exercise.name}</h3>
-              <p className="text-sm text-slate-300">{detailText}</p>
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-brand-300">{phaseLabel}</p>
+              <h3 className="text-xl font-bold text-white transition-colors group-hover:text-brand-100">
+                {exercise.name}
+              </h3>
+              <p className="text-sm font-medium text-slate-400">{detailText}</p>
             </div>
             <ChevronDown
-              className={`h-5 w-5 shrink-0 text-brand-200 transition-transform ${expanded ? 'rotate-180' : ''}`}
+              className={`h-6 w-6 shrink-0 text-brand-300 transition-all duration-300 group-hover:text-brand-200 ${
+                expanded ? 'rotate-180' : ''
+              }`}
             />
           </button>
 
           {expanded ? (
-            <div className="mt-3 space-y-3 text-sm text-slate-200">
-              <p>{exercise.description}</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="mt-4 space-y-4 text-sm text-slate-200 animate-slideUp">
+              <p className="leading-relaxed">{exercise.description}</p>
+              <div className="flex flex-wrap gap-3">
                 {hasDuration ? (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-full border border-brand-400/40 bg-brand-500/20 px-3 py-1 text-brand-50 transition hover:bg-brand-500/30"
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-4 py-2 font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-glow"
                     onClick={() => onStartTimer(exercise.duration, `${exercise.name} · Übung`)}
                   >
                     <TimerIcon className="h-4 w-4" /> Übungstimer
@@ -85,7 +89,7 @@ function ExerciseCard({ exercise, phase, index, isCompleted, onToggle, onStartTi
                 {hasRest ? (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-3 py-1 text-slate-100 transition hover:bg-slate-700/80"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-800/80 px-4 py-2 font-semibold text-slate-100 transition-all duration-300 hover:border-brand-400/50 hover:bg-slate-700/80"
                     onClick={() => onStartTimer(exercise.rest, `${exercise.name} · Pause`)}
                   >
                     <TimerReset className="h-4 w-4" /> Pausentimer

@@ -1,30 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
-  @apply m-0 min-h-screen bg-slate-950 text-slate-100 font-sans antialiased;
+  @apply m-0 min-h-screen bg-slate-950 font-sans antialiased text-slate-100;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 #root {
   @apply min-h-screen;
 }
 
-a {
-  @apply text-brand-300 underline-offset-4 transition-colors duration-200;
-}
-
-a:hover {
-  @apply text-brand-200;
-}
-
 button:focus-visible,
 [role='button']:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  @apply outline outline-2 outline-offset-2 outline-brand-300;
+  @apply outline outline-2 outline-offset-2 outline-brand-400 shadow-glow;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-900/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-brand-500/50;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-brand-400/70;
+}
+
+* {
+  @apply transition-colors duration-200;
+}
+
+@supports (backdrop-filter: blur(12px)) {
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+  }
 }
